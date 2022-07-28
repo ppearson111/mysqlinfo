@@ -1,0 +1,72 @@
+#!/bin/sh
+
+# ========================================================
+# Author: Paul Pearson
+#  Email: ppearson111@gmail.com
+#   Desc: Get's local information about what my.cnf files
+#         your MySQL installation will look for and in
+#         what order.  Each file is then examined to see
+#         if it exists or not. No warrantee is expressed
+#         or implied; for informational use only.
+# ========================================================
+
+mysqlcmd="mysqld"
+
+if hash $mysqlcmd 2>/dev/null; then
+    echo ""
+    echo "+=================================+"
+    echo "| MySQL Configuration information |"
+    echo "+=================================+"
+else
+    echo "---------------------------------------------"
+    echo "This utility requires the command: $mysqlcmd"
+    echo "It appears that MySQL may not be installed"
+    echo "or may not be configured correctly."
+    echo "---------------------------------------------"
+    exit
+fi
+
+
+MYSQLD=$(which $mysqlcmd)
+OUTPUT="$($MYSQLD --verbose --help | grep -A 1 'Default options')"
+IFS=$'\n' read -rd '' -a SPLIT <<<"$OUTPUT"
+
+IFS=$' ' read -rd '' -a FILES <<<"${SPLIT[1]}"
+
+echo ${SPLIT[0]}
+echo ${SPLIT[1]}
+echo
+
+len=${#FILES[@]}
+echo "Possible configuration files:"
+maxlen=0
+curfile=""
+
+for (( i=0; i<$len; i++ )) do
+    curfile=${FILES[$i]}
+    curlen=${#curfile}
+    # echo "Item #$i length: $curlen"
+    maxlen=$(( curlen > maxlen ? curlen : maxlen ))
+    # echo "$curfile : Max len currently: $maxlen"
+done
+
+for (( i=0; i<$len; i++ )) do
+    # echo "${FILES[$i]}"
+    curfile=${FILES[$i]}
+    curlen=${#curfile}
+
+    # Skip any files that are less than 3 chars long (just garbage?)
+    if [ $curlen -le 2 ]
+    then
+        # echo "File of length $curlen is invalid"
+        continue
+    fi
+
+    existstatus="Does NOT exist"
+    if [ -f "$curfile" ]; then
+        existstatus="File exists"
+    fi 
+
+    printf "File %d: %*s <-- $existstatus\n" $i $maxlen $curfile
+done
+
