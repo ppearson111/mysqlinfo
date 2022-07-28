@@ -1,6 +1,7 @@
 # mysqlinfo
 A command-line tool to get information about your MySQL configuration files and where they are located
 
+## Installation
 Save the script to a folder within your current PATH. Then be sure to update file priveledges so that it
 can execute: > sudo chmod a+x ./mysqlinfo
 
